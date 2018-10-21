@@ -1,0 +1,13 @@
+diff --git a/lib/driver/osx.c b/lib/driver/osx.c
+index c361fd9..e52c863 100644
+--- a/lib/driver/osx.c
++++ b/lib/driver/osx.c
+@@ -659,7 +659,7 @@ GetDeviceIterator ( const char * deviceClass )
+   err = IOServiceGetMatchingServices ( kIOMasterPortDefault,
+                                        IOServiceMatching ( deviceClass ),
+                                        &iterator );
+-  check ( err == kIOReturnSuccess );
++  cdio_assert ( err == kIOReturnSuccess );
+   
+   return iterator;
+   

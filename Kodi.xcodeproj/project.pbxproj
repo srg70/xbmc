@@ -1022,7 +1022,6 @@
 		DF8458291D6CBA47001A2050 /* Platform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF0D9F4B1D63931F006A7DBB /* Platform.cpp */; settings = {COMPILER_FLAGS = "-DPLATFORM_OVERRIDE"; }; };
 		DF84582A1D6CBA4E001A2050 /* PlatformDarwin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF8E55951D5F1D7000FD2BA3 /* PlatformDarwin.cpp */; };
 		DF84582B1D6CBA4E001A2050 /* PlatformDarwin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF8E55951D5F1D7000FD2BA3 /* PlatformDarwin.cpp */; };
-		DF84582E1D6CBA5A001A2050 /* PlatformDarwinTVOS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF84582D1D6CBA5A001A2050 /* PlatformDarwinTVOS.cpp */; };
 		DF84582F1D6CBA5F001A2050 /* PlatformDarwinTVOS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF84582D1D6CBA5A001A2050 /* PlatformDarwinTVOS.cpp */; };
 		DF8458301D6CBBEE001A2050 /* GUIFeatureControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 68B7E5E61D5FA9B300A5AEC0 /* GUIFeatureControls.cpp */; };
 		DF89901C1709BB2D00B35C21 /* MediaSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF8990161709BB2D00B35C21 /* MediaSettings.cpp */; };
@@ -10952,11 +10951,12 @@
 			attributes = {
 				TargetAttributes = {
 					DFC67A9D1C1C642800360EDE = {
-						DevelopmentTeam = 5CWPLTTD9A;
+						DevelopmentTeam = 35BFEUDGL5;
+						ProvisioningStyle = Automatic;
 					};
 					DFE4BE0D1C6634ED0048EB03 = {
 						CreatedOnToolsVersion = 7.2;
-						DevelopmentTeam = 5CWPLTTD9A;
+						DevelopmentTeam = 35BFEUDGL5;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
 								enabled = 1;
@@ -11148,7 +11148,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "tools/darwin/Support/CopyRootFiles-ios.command";
+			shellScript = "tools/darwin/Support/CopyRootFiles-ios.command\n";
 		};
 		DFC67EF91C1C642800360EDE /* copy frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -11176,7 +11176,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = tools/darwin/Support/genoutputdirlink.command;
+			shellScript = "tools/darwin/Support/genoutputdirlink.command\n";
 		};
 		DFC67EFB1C1C642800360EDE /* codesign */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -11204,7 +11204,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = tools/darwin/Support/genoutputdirlink.command;
+			shellScript = "tools/darwin/Support/genoutputdirlink.command\n";
 		};
 		E49910BE174D1E1E00741B6D /* codesign */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -11218,7 +11218,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = tools/darwin/Support/Codesign.command;
+			shellScript = "tools/darwin/Support/Codesign.command\n";
 		};
 		E49910BF174D1E3500741B6D /* copy frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -11246,7 +11246,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "tools/darwin/Support/CopyRootFiles-ios.command";
+			shellScript = "tools/darwin/Support/CopyRootFiles-ios.command\n";
 		};
 		E49910C1174D1F6600741B6D /* Make interface-python */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -11456,7 +11456,6 @@
 				E38E206A0D25F9FD00618676 /* DirectoryNodeSeasons.cpp in Sources */,
 				E38E206C0D25F9FD00618676 /* DirectoryNodeTitleMovies.cpp in Sources */,
 				DF14CF7E1A77782E00396CC9 /* InputManager.cpp in Sources */,
-				DF84582E1D6CBA5A001A2050 /* PlatformDarwinTVOS.cpp in Sources */,
 				E38E206D0D25F9FD00618676 /* DirectoryNodeTitleMusicVideos.cpp in Sources */,
 				E38E206E0D25F9FD00618676 /* DirectoryNodeTitleTvShows.cpp in Sources */,
 				E38E206F0D25F9FD00618676 /* DirectoryNodeTvShowsOverview.cpp in Sources */,
@@ -14881,12 +14880,15 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = 35BFEUDGL5;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SDKROOT)$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					$SRCROOT,
@@ -14905,9 +14907,10 @@
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/xbmc/platform/darwin/tvos/Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.memphiz.kodi-tvos";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh";
 				PRODUCT_NAME = Kodi;
 				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SUPPORTED_PLATFORMS = "appletvsimulator appletvos";
 				TARGETED_DEVICE_FAMILY = 3;
@@ -14933,12 +14936,15 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = 35BFEUDGL5;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SDKROOT)$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					$SRCROOT,
@@ -14956,9 +14962,10 @@
 					$XBMC_DEPENDS/include/libxml2,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/xbmc/platform/darwin/tvos/Info.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.memphiz.kodi-tvos";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh";
 				PRODUCT_NAME = Kodi;
 				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SUPPORTED_PLATFORMS = "appletvsimulator appletvos";
 				TARGETED_DEVICE_FAMILY = 3;
@@ -14991,6 +14998,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 35BFEUDGL5;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -15010,7 +15018,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos.TVOSTopShelf";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh.TVOSTopShelf";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = appletvos;
@@ -15043,6 +15051,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 35BFEUDGL5;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -15055,7 +15064,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/xbmc/platform/darwin/tvos/TopShelf/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos.TVOSTopShelf";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh.TVOSTopShelf";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = appletvos;
