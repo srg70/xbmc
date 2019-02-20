@@ -205,7 +205,7 @@
 				PRODUCT_NAME = XBMCHelper;
 				SDKROOT = macosx;
 				STRIP_STYLE = debugging;
-				VALID_ARCHS = i386;
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -226,7 +226,7 @@
 				PRODUCT_NAME = XBMCHelper;
 				SDKROOT = macosx;
 				STRIP_STYLE = debugging;
-				VALID_ARCHS = i386;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
