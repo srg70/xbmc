@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(kodi-addons)
 
+if(NOT CPU)
+  set(CPU ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
 option(ADDON_TARBALL_CACHING "Cache downloaded addon source tarballs?" ON)
