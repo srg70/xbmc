@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 project(kodi-addons)
 
 if(NOT CPU)
+if(WITH_CPU)
+  set(CPU ${WITH_CPU})
+elseif(NOT KODI_DEPENDSBUILD)
   set(CPU ${CMAKE_SYSTEM_PROCESSOR})
+endif()
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
