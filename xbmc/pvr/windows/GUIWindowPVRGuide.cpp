@@ -26,7 +26,10 @@
 #include "pvr/PVRGUIActions.h"
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
+#include "pvr/epg/EpgChannelData.h"
 #include "pvr/epg/EpgContainer.h"
+#include "pvr/recordings/PVRRecordings.h"
+#include "pvr/timers/PVRTimers.h"
 #include "pvr/windows/GUIEPGGridContainer.h"
 
 using namespace KODI::MESSAGING;
@@ -224,7 +227,7 @@ bool CGUIWindowPVRGuideBase::GetDirectory(const std::string &strDirectory, CFile
 
   // never call DoRefresh with locked mutex!
   if (m_bSyncRefreshTimelineItems)
-    m_refreshTimelineItemsThread->DoRefresh();
+    m_refreshTimelineItemsThread->DoRefresh(true);
 
   {
     CSingleLock lock(m_critSection);
@@ -435,7 +438,7 @@ bool CGUIWindowPVRGuideBase::OnMessage(CGUIMessage& message)
                     else if (now < start)
                     {
                       // future event
-                      if (tag->HasTimer())
+                      if (CServiceBroker::GetPVRManager().Timers()->GetTimerForEpgTag(tag))
                         CServiceBroker::GetPVRManager().GUIActions()->EditTimer(pItem);
                       else
                       {
@@ -453,7 +456,7 @@ bool CGUIWindowPVRGuideBase::OnMessage(CGUIMessage& message)
                     else
                     {
                       // past event
-                      if (tag->HasRecording())
+                      if (CServiceBroker::GetPVRManager().Recordings()->GetRecordingForEpgTag(tag))
                         CServiceBroker::GetPVRManager().GUIActions()->PlayRecording(pItem, true);
                       else if (tag->IsPlayable())
                         CServiceBroker::GetPVRManager().GUIActions()->PlayEpgTag(pItem);
@@ -479,7 +482,7 @@ bool CGUIWindowPVRGuideBase::OnMessage(CGUIMessage& message)
               bReturn = true;
               break;
             case ACTION_PVR_SHOW_TIMER_RULE:
-              CServiceBroker::GetPVRManager().GUIActions()->AddTimerRule(pItem, true);
+              CServiceBroker::GetPVRManager().GUIActions()->AddTimerRule(pItem, true, false);
               bReturn = true;
               break;
             case ACTION_CONTEXT_MENU:
@@ -626,17 +629,24 @@ bool CGUIWindowPVRGuideBase::RefreshTimelineItems()
         for (const auto& groupMember : groupMembers)
         {
           // fake a channel without epg
-          const std::shared_ptr<CPVREpgInfoTag> gapTag = std::make_shared<CPVREpgInfoTag>(groupMember.channel);
+
+          const std::shared_ptr<CPVREpgInfoTag> gapTag
+            = std::make_shared<CPVREpgInfoTag>(std::make_shared<CPVREpgChannelData>(*(groupMember.channel)), -1);
           timeline->Add(std::make_shared<CFileItem>(gapTag));
         }
 
         // next, fetch actual data.
         m_bRefreshTimelineItems = true;
+        m_refreshTimelineItemsThread->DoRefresh(false);
       }
       else
       {
         // can be very expensive. never call with lock acquired.
-        group->GetEPGAll(*timeline, true);
+        const std::vector<std::shared_ptr<CPVREpgInfoTag>> tags = group->GetEPGAll(true);
+        for (const auto& tag : tags)
+        {
+          timeline->Add(std::make_shared<CFileItem>(tag));
+        }
       }
 
       CDateTime startDate(group->GetFirstEPGDate());
@@ -721,15 +731,15 @@ void CGUIWindowPVRGuideBase::OnInputDone()
   const CPVRChannelNumber channelNumber = GetChannelNumber();
   if (channelNumber.IsValid())
   {
-    for (const CFileItemPtr event : *m_vecItems)
+    CGUIEPGGridContainer* epgGridContainer = GetGridControl();
+    if (epgGridContainer)
     {
-      const CPVREpgInfoTagPtr tag(event->GetEPGInfoTag());
-      if (tag->HasChannel() && tag->Channel()->ChannelNumber() == channelNumber)
+      for (const std::shared_ptr<CFileItem>& event : *m_vecItems)
       {
-        CGUIEPGGridContainer* epgGridContainer = GetGridControl();
-        if (epgGridContainer)
+        const std::shared_ptr<CPVRChannel> channel = CServiceBroker::GetPVRManager().ChannelGroups()->GetChannelForEpgTag(event->GetEPGInfoTag());
+        if (channel && channel->ChannelNumber() == channelNumber)
         {
-          epgGridContainer->SetChannel(tag->Channel());
+          epgGridContainer->SetChannel(channel);
           return;
         }
       }
@@ -766,11 +776,15 @@ void CPVRRefreshTimelineItemsThread::Stop()
   m_ready.Set(); // wake up the worker thread to let it exit
 }
 
-void CPVRRefreshTimelineItemsThread::DoRefresh()
+void CPVRRefreshTimelineItemsThread::DoRefresh(bool bWait)
 {
   m_ready.Set(); // wake up the worker thread
-  m_done.Reset();
-  CGUIDialogBusy::WaitOnEvent(m_done, 100, false);
+
+  if (bWait)
+  {
+    m_done.Reset();
+    CGUIDialogBusy::WaitOnEvent(m_done, 100, false);
+  }
 }
 
 void CPVRRefreshTimelineItemsThread::Process()

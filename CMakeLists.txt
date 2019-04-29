@@ -35,13 +35,9 @@ include(cmake/scripts/common/Macros.cmake)
 include(cmake/scripts/common/ProjectMacros.cmake)
 core_find_versions()
 include(cmake/scripts/${CORE_SYSTEM_NAME}/PathSetup.cmake)
+include(cmake/scripts/common/CompilerSettings.cmake)
 include(ExternalProject)
 
-# Languages and global compiler settings
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
 
 # general
 option(VERBOSE            "Enable verbose output?" OFF)
@@ -134,15 +130,8 @@ set(required_deps ASS
                   Sqlite3
                   TagLib
                   TinyXML
+                  ZLIB
                   ${PLATFORM_REQUIRED_DEPS})
-if(NOT WIN32)
-  list(APPEND required_deps ZLIB)
-else()
-  list(APPEND required_deps D3DX11Effects)
-endif()
-if(CORE_SYSTEM_NAME STREQUAL android)
-  list(APPEND required_deps Zip)
-endif()
 
 # Optional dependencies. Keep in alphabetical order please
 set(optional_deps Alsa
@@ -456,7 +445,6 @@ file(COPY ${CORE_ADDON_BINDINGS_FILES} ${CORE_ADDON_BINDINGS_DIRS}/
 
 set(APP_LIB_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/lib/${APP_NAME_LC})
 set(APP_INCLUDE_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include/${APP_NAME_LC})
-set(CXX11_SWITCH "-std=c++11")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/KodiConfig.cmake.in
                ${CORE_BUILD_DIR}/lib/${APP_NAME_LC}/${APP_NAME}Config.cmake @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/common/AddonHelpers.cmake
