@@ -295,7 +295,7 @@ case $host in
         esac
 
         # setup which sdk to use
-        found_sdk_version=[`$use_xcodebuild -showsdks | sed -E -n 's/.*macosx([0-9]+)\.([0-9]+)/\1.\2/p' | sort  -n -t. -k1,1 -k2,2 | tail -n 1`]
+        found_sdk_version=[`$use_xcodebuild -showsdks | sed -E -n 's/.* macosx([0-9]+)\.([0-9]+)/\1.\2/p' | sort  -n -t. -k1,1 -k2,2 | tail -n 1`]
         use_sdk="${use_sdk:-$found_sdk_version}"
 
         # now that we know which sdk, error check sdk_name
@@ -306,6 +306,7 @@ case $host in
           10.12);;
           10.13);;
           10.14);;
+          10.15);;
           *)
             AC_MSG_ERROR(error in configure of --with-sdk=$use_sdk)
         esac
