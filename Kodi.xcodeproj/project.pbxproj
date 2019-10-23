@@ -10950,6 +10950,10 @@
 			isa = PBXProject;
 			attributes = {
 				TargetAttributes = {
+					8DD76F740486A8DE00D96B5E = {
+						DevelopmentTeam = 35BFEUDGL5;
+						ProvisioningStyle = Automatic;
+					};
 					DFC67A9D1C1C642800360EDE = {
 						DevelopmentTeam = 35BFEUDGL5;
 						ProvisioningStyle = Automatic;
@@ -14733,9 +14737,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E49910D1174E2E0000741B6D /* App-OSX.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 35BFEUDGL5;
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -14764,6 +14771,7 @@
 					"-Wreorder",
 				);
 				PRODUCT_NAME = Kodi;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = "";
 				ZERO_LINK = NO;
@@ -14774,8 +14782,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E49910D1174E2E0000741B6D /* App-OSX.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = NO;
+				DEVELOPMENT_TEAM = 35BFEUDGL5;
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -14806,6 +14817,7 @@
 					"-Wreorder",
 				);
 				PRODUCT_NAME = Kodi;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = "";
 				ZERO_LINK = NO;
@@ -14869,7 +14881,7 @@
 			baseConfigurationReference = DFAB66061C1C943F00AA84A0 /* App-TVOS.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
+				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconTopShelfImage;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -14915,7 +14927,7 @@
 				SDKROOT = appletvos;
 				SUPPORTED_PLATFORMS = "appletvsimulator appletvos";
 				TARGETED_DEVICE_FAMILY = 3;
-				VALID_ARCHS = arm64;
+				VALID_ARCHS = "$(ARCHS_STANDARD";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -14925,7 +14937,7 @@
 			baseConfigurationReference = DFAB66061C1C943F00AA84A0 /* App-TVOS.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
+				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconTopShelfImage;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -14970,7 +14982,7 @@
 				SDKROOT = appletvos;
 				SUPPORTED_PLATFORMS = "appletvsimulator appletvos";
 				TARGETED_DEVICE_FAMILY = 3;
-				VALID_ARCHS = arm64;
+				VALID_ARCHS = "$(ARCHS_STANDARD";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -15019,13 +15031,14 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh.TVOSTopShelf";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh.tvostopshelf";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
 				TVOS_DEPLOYMENT_TARGET = 10.2;
+				VALID_ARCHS = "$(ARCHS_STANDARD";
 			};
 			name = Debug;
 		};
@@ -15066,7 +15079,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/xbmc/platform/darwin/tvos/TopShelf/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh.TVOSTopShelf";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.xbmc.kodi-tvos-ssh.tvostopshelf";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -15074,6 +15087,7 @@
 				SKIP_INSTALL = YES;
 				TVOS_DEPLOYMENT_TARGET = 10.2;
 				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "$(ARCHS_STANDARD";
 			};
 			name = Release;
 		};
