@@ -1,1 +1,1 @@
-p8-platform https://github.com/Pulse-Eight/platform.git master
+p8-platform https://github.com/srg70/platform.git master
