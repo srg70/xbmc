@@ -2671,7 +2671,11 @@ bool CApplication::PlayMedia(CFileItem& item, const std::string &player, int iPl
       smartpl.OpenAndReadName(item.GetURL());
       CPlayList playlist;
       playlist.Add(items);
-      return ProcessAndStartPlaylist(smartpl.GetName(), playlist, (smartpl.GetType() == "songs" || smartpl.GetType() == "albums") ? PLAYLIST_MUSIC:PLAYLIST_VIDEO);
+      int iPlaylist = PLAYLIST_VIDEO;
+      if (smartpl.GetType() == "songs" || smartpl.GetType() == "albums" ||
+          smartpl.GetType() == "artists")
+        iPlaylist = PLAYLIST_MUSIC;
+      return ProcessAndStartPlaylist(smartpl.GetName(), playlist, iPlaylist);
     }
   }
   else if (item.IsPlayList() || item.IsInternetStream())
@@ -3628,30 +3632,36 @@ void CApplication::ActivateScreenSaver(bool forceType /*= false */)
   // disable screensaver lock from the login screen
   m_iScreenSaveLock = CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow() == WINDOW_LOGIN_SCREEN ? 1 : 0;
 
-  // set to Dim in the case of a dialog on screen or playing video
-  bool bUseDim = false;
+  m_screensaverIdInUse = settings->GetString(CSettings::SETTING_SCREENSAVER_MODE);
+
   if (!forceType)
   {
+    if (m_screensaverIdInUse == "screensaver.xbmc.builtin.dim" ||
+        m_screensaverIdInUse == "screensaver.xbmc.builtin.black" ||
+        m_screensaverIdInUse.empty())
+    {
+      return;
+    }
+
+    // Enforce Dim for special cases.
+    bool bUseDim = false;
     if (CServiceBroker::GetGUI()->GetWindowManager().HasModalDialog(true))
       bUseDim = true;
     else if (m_appPlayer.IsPlayingVideo() && settings->GetBool(CSettings::SETTING_SCREENSAVER_USEDIMONPAUSE))
       bUseDim = true;
     else if (CServiceBroker::GetPVRManager().GUIActions()->IsRunningChannelScan())
       bUseDim = true;
+
+    if (bUseDim)
+      m_screensaverIdInUse = "screensaver.xbmc.builtin.dim";
   }
 
-  if (bUseDim)
-    m_screensaverIdInUse = "screensaver.xbmc.builtin.dim";
-  else // Get Screensaver Mode
-    m_screensaverIdInUse = settings->GetString(CSettings::SETTING_SCREENSAVER_MODE);
-
   if (m_screensaverIdInUse == "screensaver.xbmc.builtin.dim" ||
-      m_screensaverIdInUse == "screensaver.xbmc.builtin.black")
+      m_screensaverIdInUse == "screensaver.xbmc.builtin.black" ||
+      m_screensaverIdInUse.empty())
   {
     return;
   }
-  else if (m_screensaverIdInUse.empty())
-    return;
   else if (CServiceBroker::GetAddonMgr().GetAddon(m_screensaverIdInUse, m_pythonScreenSaver, ADDON_SCREENSAVER))
   {
     std::string libPath = m_pythonScreenSaver->LibPath();
@@ -3747,6 +3757,9 @@ bool CApplication::OnMessage(CGUIMessage& message)
         ShowAppMigrationMessage();
 
         m_bInitializing = false;
+
+        if (message.GetSenderId() == WINDOW_SETTINGS_PROFILES)
+          g_application.ReloadSkin(false);
       }
       else if (message.GetParam1() == GUI_MSG_UPDATE_ITEM && message.GetItem())
       {

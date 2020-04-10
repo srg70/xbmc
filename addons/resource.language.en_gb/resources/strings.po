@@ -5753,7 +5753,7 @@ msgstr ""
 #: xbmc/dialogs/GUIDialogGamepad.cpp
 #: xbmc/dialogs/GUIDialogNumeric.cpp
 msgctxt "#12343"
-msgid "retries left "
+msgid "retries left"
 msgstr ""
 
 #: xbmc/dialogs/GUIDialogGamepad.cpp
@@ -21702,4 +21702,10 @@ msgstr ""
 #: system/settings/settings.xml
 msgctxt "#39116"
 msgid "Episode plot"
+msgstr ""
+
+#. Label for component level debug logging setting
+#: xbmc/settings/AdvancedSettings.cpp
+msgctxt "#39117"
+msgid "Verbose logging for the [B]Announcer[/B] component"
 msgstr ""
