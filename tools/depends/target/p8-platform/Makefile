@@ -5,14 +5,17 @@ DEPS= ../../Makefile.include Makefile
 LIBNAME=p8-platform
 VERSION=2.1.0.1
 SOURCE=$(LIBNAME)-$(VERSION)
-ARCHIVE=$(SOURCE).tar.gz
+#ARCHIVE=$(SOURCE).tar.gz
+ARCHIVE=p8-platform-master.tar.gz
 
 LIBDYLIB=$(PLATFORM)/build/lib$(LIBNAME).a
 
 all: .installed-$(PLATFORM)
 
 $(TARBALLS_LOCATION)/$(ARCHIVE):
-	cd $(TARBALLS_LOCATION); $(RETRIEVE_TOOL) $(RETRIEVE_TOOL_FLAGS) $(BASE_URL)/$(ARCHIVE)
+	cd $(TARBALLS_LOCATION); $(RETRIEVE_TOOL) -Ls --create-dirs -f -o $(ARCHIVE) https://github.com/srg70/platform/archive/master.tar.gz
+	#$(BASE_URL)/$(ARCHIVE)
+	#$(RETRIEVE_TOOL_FLAGS)
 
 $(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 	rm -rf $(PLATFORM); mkdir -p $(PLATFORM)/build
