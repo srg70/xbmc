@@ -1,0 +1,15 @@
+--- configure	2010-10-31 12:38:08.000000000 +0200
++++ configure-new	2020-10-15 23:44:23.000000000 +0300
+@@ -11742,10 +11742,10 @@
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
+ #include <stdarg.h>
+-main() {
++int main() {
+ va_list v1, v2;
+ va_copy (v1, v2);
+-exit (0);
++return 0;
+ }
+ _ACEOF
+ rm -f conftest$ac_exeext
