@@ -1,0 +1,29 @@
+--- aclocal.m4	2016-01-28 22:02:21.000000000 +0200
++++ aclocal-new.m4	2020-10-16 17:47:41.000000000 +0300
+@@ -53,7 +53,7 @@
+   fi
+   OLD_CFLAGS="$CFLAGS"
+   CFLAGS="$CFLAGS $CCPIC"
+-  AC_TRY_COMPILE([], [exit(0);],
++  AC_TRY_COMPILE([], [return 0;],
+     lsh_cv_sys_ccpic="$CCPIC", lsh_cv_sys_ccpic='')
+   CFLAGS="$OLD_CFLAGS"
+ ])
+@@ -550,7 +550,7 @@
+ int
+ main ()
+ {
+-  exit(0);
++    return 0;
+ }
+ EOF
+ gmp_compile="$1 conftest.c"
+@@ -591,7 +591,7 @@
+ int
+ main ()
+ {
+-  exit (0);
++    return 0;
+ }
+ EOF
+   for i in .exe ,ff8 ""; do
