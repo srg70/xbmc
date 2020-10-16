@@ -25,6 +25,8 @@ $(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 	-rm -rf $(PLATFORM)/*; mkdir -p $(PLATFORM)
 	cd $(PLATFORM); $(ARCHIVE_TOOL) $(ARCHIVE_TOOL_FLAGS) $(TARBALLS_LOCATION)/$(ARCHIVE)
 	cd $(PLATFORM); patch -p1 < ../01-darwin14-openat.patch
+	cd $(PLATFORM); patch -p0 < ../02-setgroups_size_arg_configure_ac.patch
+	cd $(PLATFORM); $(AUTORECONF)  -vif
 	cd $(PLATFORM); $(CONFIGURE)
 
 $(APP): $(PLATFORM)

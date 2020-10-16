@@ -1,0 +1,18 @@
+--- configure.ac	2020-10-16 15:31:04.000000000 +0300
++++ configure-new.ac	2020-10-16 15:45:07.000000000 +0300
+@@ -86,6 +86,7 @@
+   for second in void char; do
+     for third in size_t int; do
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
++        #include <stdio.h>
+         $zeroth readlink(const char *path, $second *buf, $third bufsiz);]], [[puts("hello, world");]])],
+ 	[readlink_retval=$zeroth
+ 	 readlink_buf_arg=$second
+@@ -109,6 +110,7 @@
+ #ifdef HAVE_SYS_TYPES_H
+ #include <sys/types.h>
+ #endif
++#include <stdio.h>
+ #include <unistd.h>
+ #ifdef HAVE_GRP_H
+ #include <grp.h>
