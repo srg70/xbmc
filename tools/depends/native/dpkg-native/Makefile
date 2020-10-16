@@ -28,6 +28,7 @@ $(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 	cd $(PLATFORM); $(ARCHIVE_TOOL) $(ARCHIVE_TOOL_FLAGS) $(TARBALLS_LOCATION)/$(ARCHIVE)
 	cd $(PLATFORM); patch -p0 < ../01-vacopy_exit.patch
 	cd $(PLATFORM); patch -p0 < ../02-config_vacopy_exit.patch
+	cd $(PLATFORM); patch -p0 < ../03-split_makefile_am__pkglibdir_scripts.patch
 	cd $(PLATFORM); $(AUTORECONF) -vif
 	cd $(PLATFORM); $(CONFIGURE)
 

@@ -1,0 +1,14 @@
+--- dpkg-split/Makefile.am	2010-10-31 12:14:40.000000000 +0200
++++ dpkg-split/Makefile-new.am	2020-10-16 11:47:01.000000000 +0300
+@@ -24,7 +24,10 @@
+ 	../lib/libdpkg.a
+ 
+ 
+-pkglib_SCRIPTS = mksplit
++# pkglib_SCRIPTS = mksplit
++mksplit_pkglibdir = $(pkglibdir)
++mksplit_pkglibdir_SCRIPTS = mksplit
++
+ EXTRA_DIST = mksplit.pl
+ CLEANFILES = $(pkglib_SCRIPTS)
+ 
