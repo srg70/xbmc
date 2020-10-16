@@ -1,0 +1,38 @@
+--- acinclude.m4	2013-05-20 17:59:56.000000000 +0300
++++ acinclude-new.m4	2020-10-16 16:48:55.000000000 +0300
+@@ -3691,7 +3691,7 @@
+ int
+ main ()
+ {
+-  exit(0);
++  return 0;
+ }
+ EOF
+ gmp_compile="$1 conftest.c"
+@@ -3765,7 +3765,7 @@
+ int
+ main ()
+ {
+-  exit (0);
++  return 0;
+ }
+ EOF
+ for i in .exe ,ff8 ""; do
+@@ -3801,7 +3801,7 @@
+ int
+ main (int argc, char **argv)
+ {
+-  exit(0);
++  return 0;
+ }
+ EOF
+ gmp_compile="$CC_FOR_BUILD conftest.c"
+@@ -3835,7 +3835,7 @@
+ int
+ main ()
+ {
+-  exit(0);
++  return 0;
+ }
+ double d;
+ double

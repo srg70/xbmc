@@ -42,6 +42,8 @@ $(TARBALLS_LOCATION)/$(ARCHIVE):
 $(PLATFORM)/config.status: $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 	rm -rf $(PLATFORM)/*; mkdir -p $(PLATFORM)
 	cd $(PLATFORM); $(ARCHIVE_TOOL) $(ARCHIVE_TOOL_FLAGS) $(TARBALLS_LOCATION)/$(ARCHIVE)
+	cd $(PLATFORM); patch -p0 < ../01-exit_in_acinclude_m4.patch
+	cd $(PLATFORM); $(AUTORECONF)  -vif
 	cd $(PLATFORM); $(CONFIGURE)
 
 $(LIBDYLIB): $(PLATFORM)/config.status
