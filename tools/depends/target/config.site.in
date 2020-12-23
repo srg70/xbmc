@@ -101,7 +101,7 @@ if test "${PACKAGE_NAME}" = "Samba" -a "@platform_os@" = "osx"; then
   export OPT="${CFLAGS}"
   # various configure overrides
   ac_cv_header_libunwind_h=no
-  ac_cv_header_execinfo_h=no
+  #ac_cv_header_execinfo_h=no
   samba_cv_HAVE_IFACE_GETIFADDRS=yes
 fi
 
