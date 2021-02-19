@@ -10,9 +10,15 @@
 
 #include "pvr/channels/PVRChannelGroup.h"
 
+#include <memory>
+#include <vector>
+
 namespace PVR
 {
   enum class PVREvent;
+
+  class CPVRChannel;
+  class CPVRChannelNumber;
 
   class CPVRChannelGroupInternal : public CPVRChannelGroup
   {
@@ -23,9 +29,7 @@ namespace PVR
      */
     explicit CPVRChannelGroupInternal(bool bRadio);
 
-    explicit CPVRChannelGroupInternal(const CPVRChannelGroup &group);
-
-    ~CPVRChannelGroupInternal(void) override;
+    ~CPVRChannelGroupInternal() override;
 
     /**
      * @brief The amount of channels in this container.
@@ -37,29 +41,36 @@ namespace PVR
      * @brief Callback for add-ons to update a channel.
      * @param channel The updated channel.
      * @param channelNumber A new channel number for the channel.
+     * @param iOrder The value denoting the order of this member in the group, 0 if unknown and needs to be generated
+     * @param clientChannelNumber The client channel number of the channel to add. (optional)
      * @return The new/updated channel.
      */
-    CPVRChannelPtr UpdateFromClient(const CPVRChannelPtr &channel, const CPVRChannelNumber &channelNumber);
+    std::shared_ptr<CPVRChannel> UpdateFromClient(const std::shared_ptr<CPVRChannel>& channel, const CPVRChannelNumber& channelNumber, int iOrder, const CPVRChannelNumber& clientChannelNumber = {});
 
     /*!
      * @see CPVRChannelGroup::IsGroupMember
      */
-    bool IsGroupMember(const CPVRChannelPtr &channel) const override;
+    bool IsGroupMember(const std::shared_ptr<CPVRChannel>& channel) const override;
 
     /*!
      * @see CPVRChannelGroup::AddToGroup
      */
-    bool AddToGroup(const CPVRChannelPtr &channel, const CPVRChannelNumber &channelNumber, bool bUseBackendChannelNumbers) override;
+    bool AddToGroup(const std::shared_ptr<CPVRChannel>& channel, const CPVRChannelNumber& channelNumber, int iOrder, bool bUseBackendChannelNumbers, const CPVRChannelNumber& clientChannelNumber = {}) override;
+
+    /*!
+     * @see CPVRChannelGroup::AppendToGroup
+     */
+    bool AppendToGroup(const std::shared_ptr<CPVRChannel>& channel) override;
 
     /*!
      * @see CPVRChannelGroup::RemoveFromGroup
      */
-    bool RemoveFromGroup(const CPVRChannelPtr &channel) override;
+    bool RemoveFromGroup(const std::shared_ptr<CPVRChannel>& channel) override;
 
     /*!
      * @brief Check whether the group name is still correct after the language setting changed.
      */
-    void CheckGroupName(void);
+    void CheckGroupName();
 
     /*!
      * @brief Create an EPG table for each channel.
@@ -80,13 +91,13 @@ namespace PVR
      * @brief Load all channels from the clients.
      * @return True when updated successfully, false otherwise.
      */
-    bool LoadFromClients(void) override;
+    bool LoadFromClients() override;
 
     /*!
      * @brief Check if this group is the internal group containing all channels.
      * @return True if it's the internal group, false otherwise.
      */
-    bool IsInternalGroup(void) const override { return true; }
+    bool IsInternalGroup() const override { return true; }
 
     /*!
      * @brief Update the current channel list with the given list.
@@ -106,14 +117,14 @@ namespace PVR
      * @param bUseBackendChannelNumbers True, if channel numbers from backends shall be used.
      * @return True if everything went well, false otherwise.
      */
-    bool AddAndUpdateChannels(const CPVRChannelGroup &channels, bool bUseBackendChannelNumbers) override;
+    bool AddAndUpdateChannels(const CPVRChannelGroup& channels, bool bUseBackendChannelNumbers) override;
 
     /*!
      * @brief Remove deleted channels from this group.
      * @param channels The new channels to use for this group.
      * @return The removed channels.
      */
-    std::vector<CPVRChannelPtr> RemoveDeletedChannels(const CPVRChannelGroup &channels) override;
+    std::vector<std::shared_ptr<CPVRChannel>> RemoveDeletedChannels(const CPVRChannelGroup& channels) override;
 
     /*!
      * @brief Refresh the channel list from the clients.
@@ -135,7 +146,7 @@ namespace PVR
     /*!
      * @brief Update the vfs paths of all channels.
      */
-    void UpdateChannelPaths(void);
+    void UpdateChannelPaths();
 
     void CreateChannelEpg(const std::shared_ptr<CPVRChannel>& channel);
 

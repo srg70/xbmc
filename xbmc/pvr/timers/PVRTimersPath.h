@@ -17,9 +17,13 @@ namespace PVR
   public:
     static const std::string PATH_ADDTIMER;
     static const std::string PATH_NEW;
+    static const std::string PATH_TV_TIMERS;
+    static const std::string PATH_TV_TIMER_RULES;
+    static const std::string PATH_RADIO_TIMERS;
+    static const std::string PATH_RADIO_TIMER_RULES;
 
     explicit CPVRTimersPath(const std::string& strPath);
-    CPVRTimersPath(const std::string& strPath, int iClientId, unsigned int iParentId);
+    CPVRTimersPath(const std::string& strPath, int iClientId, int iParentId);
     CPVRTimersPath(bool bRadio, bool bTimerRules);
 
     bool IsValid() const { return m_bValid; }
@@ -30,10 +34,10 @@ namespace PVR
     bool IsRadio() const { return m_bRadio; }
     bool IsRules() const { return m_bTimerRules; }
     int GetClientId() const { return m_iClientId; }
-    unsigned int GetParentId() const { return m_iParentId; }
+    int GetParentId() const { return m_iParentId; }
 
   private:
-    bool Init(const std::string &strPath);
+    bool Init(const std::string& strPath);
 
     std::string m_path;
     bool m_bValid = false;
@@ -41,6 +45,6 @@ namespace PVR
     bool m_bRadio = false;
     bool m_bTimerRules = false;
     int m_iClientId = -1;
-    unsigned int m_iParentId = 0;
+    int m_iParentId = 0;
   };
 }

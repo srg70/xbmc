@@ -8,11 +8,11 @@
 
 #pragma once
 
+#include "settings/lib/Setting.h"
+
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "settings/lib/Setting.h"
 
 struct IntegerSettingOption;
 
@@ -39,6 +39,8 @@ public:
 
   /** Fills the list with all visible view modes
    */
-  static void ViewModesFiller(std::shared_ptr<const CSetting> setting, std::vector<IntegerSettingOption> &list, int &current, void *data);
-
+  static void ViewModesFiller(const std::shared_ptr<const CSetting>& setting,
+                              std::vector<IntegerSettingOption>& list,
+                              int& current,
+                              void* data);
 };

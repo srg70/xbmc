@@ -7,21 +7,25 @@
  */
 
 #include "AnnouncementManager.h"
-#include "threads/SingleLock.h"
-#include <stdio.h>
-#include "utils/log.h"
-#include "utils/Variant.h"
-#include "utils/StringUtils.h"
+
 #include "FileItem.h"
-#include "music/tags/MusicInfoTag.h"
-#include "music/MusicDatabase.h"
-#include "video/VideoDatabase.h"
-#include "pvr/channels/PVRChannel.h"
 #include "PlayListPlayer.h"
+#include "music/MusicDatabase.h"
+#include "music/tags/MusicInfoTag.h"
+#include "pvr/channels/PVRChannel.h"
+#include "threads/SingleLock.h"
+#include "utils/StringUtils.h"
+#include "utils/Variant.h"
+#include "utils/log.h"
+#include "video/VideoDatabase.h"
+
+#include <stdio.h>
 
 #define LOOKUP_PROPERTY "database-lookup"
 
 using namespace ANNOUNCEMENT;
+
+const std::string CAnnouncementManager::ANNOUNCEMENT_SENDER = "xbmc";
 
 CAnnouncementManager::CAnnouncementManager() : CThread("Announce")
 {
@@ -71,24 +75,57 @@ void CAnnouncementManager::RemoveAnnouncer(IAnnouncer *listener)
   }
 }
 
-void CAnnouncementManager::Announce(AnnouncementFlag flag, const char *sender, const char *message)
+void CAnnouncementManager::Announce(AnnouncementFlag flag, const std::string& message)
+{
+  CVariant data;
+  Announce(flag, ANNOUNCEMENT_SENDER, message, CFileItemPtr(), data);
+}
+
+void CAnnouncementManager::Announce(AnnouncementFlag flag,
+                                    const std::string& message,
+                                    const CVariant& data)
+{
+  Announce(flag, ANNOUNCEMENT_SENDER, message, CFileItemPtr(), data);
+}
+
+void CAnnouncementManager::Announce(AnnouncementFlag flag,
+                                    const std::string& message,
+                                    const std::shared_ptr<const CFileItem>& item)
+{
+  CVariant data;
+  Announce(flag, ANNOUNCEMENT_SENDER, message, item, data);
+}
+
+void CAnnouncementManager::Announce(AnnouncementFlag flag,
+                                    const std::string& message,
+                                    const std::shared_ptr<const CFileItem>& item,
+                                    const CVariant& data)
+{
+  Announce(flag, ANNOUNCEMENT_SENDER, message, item, data);
+}
+
+
+void CAnnouncementManager::Announce(AnnouncementFlag flag,
+                                    const std::string& sender,
+                                    const std::string& message)
 {
   CVariant data;
   Announce(flag, sender, message, CFileItemPtr(), data);
 }
 
-void CAnnouncementManager::Announce(AnnouncementFlag flag, const char *sender, const char *message, const CVariant &data)
+void CAnnouncementManager::Announce(AnnouncementFlag flag,
+                                    const std::string& sender,
+                                    const std::string& message,
+                                    const CVariant& data)
 {
   Announce(flag, sender, message, CFileItemPtr(), data);
 }
 
-void CAnnouncementManager::Announce(AnnouncementFlag flag, const char *sender, const char *message, const std::shared_ptr<const CFileItem>& item)
-{
-  CVariant data;
-  Announce(flag, sender, message, item, data);
-}
-
-void CAnnouncementManager::Announce(AnnouncementFlag flag, const char *sender, const char *message, const std::shared_ptr<const CFileItem>& item, const CVariant &data)
+void CAnnouncementManager::Announce(AnnouncementFlag flag,
+                                    const std::string& sender,
+                                    const std::string& message,
+                                    const std::shared_ptr<const CFileItem>& item,
+                                    const CVariant& data)
 {
   CAnnounceData announcement;
   announcement.flag = flag;
@@ -106,9 +143,12 @@ void CAnnouncementManager::Announce(AnnouncementFlag flag, const char *sender, c
   m_queueEvent.Set();
 }
 
-void CAnnouncementManager::DoAnnounce(AnnouncementFlag flag, const char *sender, const char *message, const CVariant &data)
+void CAnnouncementManager::DoAnnounce(AnnouncementFlag flag,
+                                      const std::string& sender,
+                                      const std::string& message,
+                                      const CVariant& data)
 {
-  CLog::Log(LOGDEBUG, "CAnnouncementManager - Announcement: %s from %s", message, sender);
+  CLog::Log(LOGDEBUG, LOGANNOUNCE, "CAnnouncementManager - Announcement: {} from {}", message, sender);
 
   CSingleLock lock(m_announcersCritSection);
 
@@ -119,7 +159,11 @@ void CAnnouncementManager::DoAnnounce(AnnouncementFlag flag, const char *sender,
     announcers[i]->Announce(flag, sender, message, data);
 }
 
-void CAnnouncementManager::DoAnnounce(AnnouncementFlag flag, const char *sender, const char *message, CFileItemPtr item, const CVariant &data)
+void CAnnouncementManager::DoAnnounce(AnnouncementFlag flag,
+                                      const std::string& sender,
+                                      const std::string& message,
+                                      const CFileItemPtr& item,
+                                      const CVariant& data)
 {
   if (item == nullptr)
   {
@@ -134,7 +178,7 @@ void CAnnouncementManager::DoAnnounce(AnnouncementFlag flag, const char *sender,
 
   if(item->HasPVRChannelInfoTag())
   {
-    const PVR::CPVRChannelPtr channel(item->GetPVRChannelInfoTag());
+    const std::shared_ptr<PVR::CPVRChannel> channel(item->GetPVRChannelInfoTag());
     id = channel->ChannelID();
     type = "channel";
 

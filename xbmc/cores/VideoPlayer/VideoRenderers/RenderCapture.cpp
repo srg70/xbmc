@@ -49,45 +49,7 @@ bool CRenderCaptureBase::UseOcclusionQuery()
     return true;
 }
 
-#if defined(TARGET_RASPBERRY_PI)
-
-CRenderCaptureDispmanX::CRenderCaptureDispmanX()
-{
-  m_pixels = nullptr;
-}
-
-CRenderCaptureDispmanX::~CRenderCaptureDispmanX()
-{
-  delete[] m_pixels;
-}
-
-int CRenderCaptureDispmanX::GetCaptureFormat()
-{
-  return CAPTUREFORMAT_BGRA;
-}
-
-void CRenderCaptureDispmanX::BeginRender()
-{
-}
-
-void CRenderCaptureDispmanX::EndRender()
-{
-  delete[] m_pixels;
-  m_pixels = g_RBP.CaptureDisplay(m_width, m_height, NULL, true);
-
-  SetState(CAPTURESTATE_DONE);
-}
-
-void* CRenderCaptureDispmanX::GetRenderBuffer()
-{
-  return m_pixels;
-}
-
-void CRenderCaptureDispmanX::ReadOut()
-{
-}
-
-#elif defined(HAS_GL) || defined(HAS_GLES)
+#if defined(HAS_GL) || defined(HAS_GLES)
 
 CRenderCaptureGL::CRenderCaptureGL()
 {
@@ -160,7 +122,7 @@ void CRenderCaptureGL::BeginRender()
   if (m_asyncSupported)
   {
     if (!m_pbo)
-      glGenBuffersARB(1, &m_pbo);
+      glGenBuffers(1, &m_pbo);
 
     if (UseOcclusionQuery() && m_occlusionQuerySupported)
     {
@@ -276,8 +238,8 @@ void CRenderCaptureGL::PboToBuffer()
     SetState(CAPTURESTATE_FAILED);
   }
 
-  glUnmapBufferARB(GL_PIXEL_PACK_BUFFER);
-  glBindBufferARB(GL_PIXEL_PACK_BUFFER, 0);
+  glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+  glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 #endif
 }
 

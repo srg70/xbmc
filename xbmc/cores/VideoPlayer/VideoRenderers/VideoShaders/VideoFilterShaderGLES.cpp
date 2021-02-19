@@ -7,15 +7,16 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include <string>
-#include <math.h>
-
 #include "VideoFilterShaderGLES.h"
-#include "ServiceBroker.h"
-#include "utils/log.h"
-#include "utils/GLUtils.h"
+
 #include "ConvolutionKernels.h"
+#include "ServiceBroker.h"
 #include "rendering/gles/RenderSystemGLES.h"
+#include "utils/GLUtils.h"
+#include "utils/log.h"
+
+#include <math.h>
+#include <string>
 
 using namespace Shaders;
 
@@ -83,7 +84,7 @@ ConvolutionFilterShader::ConvolutionFilterShader(ESCALINGMETHOD method)
     m_floattex = false;
   }
 
-  if (m_method == VS_SCALINGMETHOD_CUBIC ||
+  if (m_method == VS_SCALINGMETHOD_CUBIC_MITCHELL ||
       m_method == VS_SCALINGMETHOD_LANCZOS2 ||
       m_method == VS_SCALINGMETHOD_SPLINE36_FAST ||
       m_method == VS_SCALINGMETHOD_LANCZOS3_FAST)

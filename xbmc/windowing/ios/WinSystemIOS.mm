@@ -6,40 +6,42 @@
  *  See LICENSES/README.md for more information.
  */
 
+#include "WinSystemIOS.h"
+
 #include "VideoSyncIos.h"
 #include "WinEventsIOS.h"
-#include "WinSystemIOS.h"
 #include "cores/AudioEngine/Sinks/AESinkDARWINIOS.h"
 #include "cores/RetroPlayer/process/ios/RPProcessInfoIOS.h"
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererOpenGLES.h"
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
 #include "cores/VideoPlayer/DVDCodecs/Video/VTB.h"
 #include "cores/VideoPlayer/Process/ios/ProcessInfoIOS.h"
-#include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
-#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
 #include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererVTBGLES.h"
-#include "utils/log.h"
+#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
+#include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 #include "filesystem/SpecialProtocol.h"
-#include "settings/DisplaySettings.h"
-#include "windowing/GraphicContext.h"
-#include "messaging/ApplicationMessenger.h"
-#include "guilib/Texture.h"
-#include "utils/StringUtils.h"
 #include "guilib/DispResource.h"
+#include "guilib/Texture.h"
+#include "messaging/ApplicationMessenger.h"
+#include "rendering/gles/ScreenshotSurfaceGLES.h"
+#include "settings/DisplaySettings.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 #include "threads/SingleLock.h"
-#include "VideoSyncIos.h"
+#include "utils/StringUtils.h"
+#include "utils/log.h"
+#include "windowing/GraphicContext.h"
+#include "windowing/WindowSystemFactory.h"
+
+#import "platform/darwin/ios/IOSScreenManager.h"
+#import "platform/darwin/ios/XBMCController.h"
+
 #include <vector>
 
 #import <Foundation/Foundation.h>
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #import <QuartzCore/CADisplayLink.h>
-
-#import "platform/darwin/ios/XBMCController.h"
-#import "platform/darwin/ios/IOSScreenManager.h"
-#include "platform/darwin/DarwinUtils.h"
-#include "settings/Settings.h"
-#include "settings/SettingsComponent.h"
 #import <dlfcn.h>
 
 #define CONST_TOUCHSCREEN "Touchscreen"
@@ -63,10 +65,14 @@ struct CADisplayLinkWrapper
   IOSDisplayLinkCallback *callbackClass;
 };
 
-std::unique_ptr<CWinSystemBase> CWinSystemBase::CreateWinSystem()
+void CWinSystemIOS::Register()
 {
-  std::unique_ptr<CWinSystemBase> winSystem(new CWinSystemIOS());
-  return winSystem;
+  KODI::WINDOWING::CWindowSystemFactory::RegisterWindowSystem(CreateWinSystem);
+}
+
+std::unique_ptr<CWinSystemBase> CWinSystemIOS::CreateWinSystem()
+{
+  return std::make_unique<CWinSystemIOS>();
 }
 
 int CWinSystemIOS::GetDisplayIndexFromSettings()
@@ -102,7 +108,6 @@ CWinSystemIOS::CWinSystemIOS() : CWinSystemBase()
 
 CWinSystemIOS::~CWinSystemIOS()
 {
-  [m_pDisplayLink->callbackClass release];
   delete m_pDisplayLink;
 }
 
@@ -148,6 +153,7 @@ bool CWinSystemIOS::CreateNewWindow(const std::string& name, bool fullScreen, RE
   VIDEOPLAYER::CProcessInfoIOS::Register();
   RETRO::CRPProcessInfoIOS::Register();
   RETRO::CRPProcessInfoIOS::RegisterRendererFactory(new RETRO::CRendererFactoryOpenGLES);
+  CScreenshotSurfaceGLES::Register();
 
   return true;
 }
@@ -189,21 +195,21 @@ bool CWinSystemIOS::SetFullScreen(bool fullScreen, RESOLUTION_INFO& res, bool bl
 
 UIScreenMode *getModeForResolution(int width, int height, unsigned int screenIdx)
 {
-  UIScreen *aScreen = [[UIScreen screens]objectAtIndex:screenIdx];
-  for ( UIScreenMode *mode in [aScreen availableModes] )
+  auto screen = UIScreen.screens[screenIdx];
+  for (UIScreenMode* mode in screen.availableModes)
   {
     //for main screen also find modes where width and height are
     //exchanged (because of the 90°degree rotated buildinscreens)
-    if((mode.size.width == width && mode.size.height == height) ||
-        (screenIdx == 0 && mode.size.width == height && mode.size.height == width)
-       || screenIdx == 0) // for screenIdx == 0 - which is the mainscreen - we only have one resolution - match it every time
+    auto modeSize = mode.size;
+    if ((modeSize.width == width && modeSize.height == height) ||
+        (screenIdx == 0 && modeSize.width == height && modeSize.height == width))
     {
-      CLog::Log(LOGDEBUG,"Found matching mode");
+      CLog::Log(LOGDEBUG, "Found matching mode: {} x {}", modeSize.width, modeSize.height);
       return mode;
     }
   }
   CLog::Log(LOGERROR,"No matching mode found!");
-  return NULL;
+  return nil;
 }
 
 bool CWinSystemIOS::SwitchToVideoMode(int width, int height, double refreshrate)
@@ -237,7 +243,7 @@ bool CWinSystemIOS::GetScreenResolution(int* w, int* h, double* fps, int screenI
     *w = firstMode.size.width;
     *h = firstMode.size.height;
   }
-  
+
   // for mainscreen use the eagl bounds from xbmcController
   // because mainscreen is might be 90° rotate dependend on
   // the device and eagl gives the correct values in all cases.
@@ -255,7 +261,7 @@ bool CWinSystemIOS::GetScreenResolution(int* w, int* h, double* fps, int screenI
       m_internalTouchscreenResolutionWidth = [g_xbmcController getScreenSize].width;
       m_internalTouchscreenResolutionHeight = [g_xbmcController getScreenSize].height;
     }
-    
+
     *w = m_internalTouchscreenResolutionWidth;
     *h = m_internalTouchscreenResolutionHeight;
   }
@@ -302,7 +308,7 @@ void CWinSystemIOS::FillInVideoModes(int screenIdx)
     h = mode.size.height;
 
     UpdateDesktopResolution(res, screenIdx == 0 ? CONST_TOUCHSCREEN : CONST_EXTERNAL, w, h, refreshrate, 0);
-    CLog::Log(LOGNOTICE, "Found possible resolution for display %d with %d x %d\n", screenIdx, w, h);
+    CLog::Log(LOGINFO, "Found possible resolution for display %d with %d x %d", screenIdx, w, h);
 
     CServiceBroker::GetWinSystem()->GetGfxContext().ResetOverscan(res);
     CDisplaySettings::GetInstance().AddResolutionInfo(res);
@@ -371,12 +377,13 @@ void CWinSystemIOS::OnAppFocusChange(bool focus)
 //--------------------------------------------------------------
 - (void) runDisplayLink
 {
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  if (_videoSyncImpl != nil)
+  @autoreleasepool
   {
-    _videoSyncImpl->IosVblankHandler();
+    if (_videoSyncImpl != nil)
+    {
+      _videoSyncImpl->IosVblankHandler();
+    }
   }
-  [pool release];
 }
 @end
 
@@ -398,7 +405,7 @@ bool CWinSystemIOS::InitDisplayLink(CVideoSyncIos *syncImpl)
   [m_pDisplayLink->callbackClass SetVideoSyncImpl:syncImpl];
   m_pDisplayLink->impl = [currentScreen displayLinkWithTarget:m_pDisplayLink->callbackClass selector:@selector(runDisplayLink)];
 
-  [m_pDisplayLink->impl setFrameInterval:1];
+  [m_pDisplayLink->impl setPreferredFramesPerSecond:0];
   [m_pDisplayLink->impl addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
   return m_pDisplayLink->impl != nil;
 }
@@ -458,7 +465,7 @@ bool CWinSystemIOS::Show(bool raise)
   return true;
 }
 
-void* CWinSystemIOS::GetEAGLContextObj()
+CVEAGLContext CWinSystemIOS::GetEAGLContextObj()
 {
   return [g_xbmcController getEAGLContextObj];
 }

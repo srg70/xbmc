@@ -8,12 +8,12 @@
 
 #pragma once
 
+#include "IPowerSyscall.h"
+
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "IPowerSyscall.h"
 
 class CFileItem;
 class CSetting;
@@ -46,7 +46,12 @@ public:
 
   void ProcessEvents();
 
-  static void SettingOptionsShutdownStatesFiller(std::shared_ptr<const CSetting> setting, std::vector<IntegerSettingOption> &list, int &current, void *data);
+  static void SettingOptionsShutdownStatesFiller(const std::shared_ptr<const CSetting>& setting,
+                                                 std::vector<IntegerSettingOption>& list,
+                                                 int& current,
+                                                 void* data);
+
+  IPowerSyscall* GetPowerSyscall() const { return m_instance.get(); };
 
 private:
   void OnSleep() override;

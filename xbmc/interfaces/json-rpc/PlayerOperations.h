@@ -8,13 +8,18 @@
 
 #pragma once
 
-#include "JSONRPC.h"
 #include "FileItemHandler.h"
-#include "pvr/PVRTypes.h"
+#include "JSONRPC.h"
 
 #include <string>
 
 class CVariant;
+
+namespace PVR
+{
+class CPVRChannelGroup;
+class CPVREpgInfoTag;
+}
 
 namespace JSONRPC
 {
@@ -56,6 +61,7 @@ namespace JSONRPC
     static JSONRPC_STATUS SetPartymode(const std::string &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result);
 
     static JSONRPC_STATUS SetAudioStream(const std::string &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result);
+    static JSONRPC_STATUS AddSubtitle(const std::string &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result);
     static JSONRPC_STATUS SetSubtitle(const std::string &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result);
     static JSONRPC_STATUS SetVideoStream(const std::string &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result);
   private:
@@ -69,6 +75,6 @@ namespace JSONRPC
     static int ParseRepeatState(const CVariant &repeat);
     static double ParseTimeInSeconds(const CVariant &time);
     static bool IsPVRChannel();
-    static PVR::CPVREpgInfoTagPtr GetCurrentEpg();
+    static std::shared_ptr<PVR::CPVREpgInfoTag> GetCurrentEpg();
   };
 }

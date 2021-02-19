@@ -7,14 +7,12 @@
  */
 
 #include "GUIDialogPVRRecordingInfo.h"
-#include "guilib/GUIMessage.h"
 
 #include "FileItem.h"
 #include "ServiceBroker.h"
-
-#include "pvr/PVRGUIActions.h"
+#include "guilib/GUIMessage.h"
 #include "pvr/PVRManager.h"
-
+#include "pvr/guilib/PVRGUIActions.h"
 
 using namespace PVR;
 
@@ -22,7 +20,7 @@ using namespace PVR;
 #define CONTROL_BTN_OK  7
 #define CONTROL_BTN_PLAY_RECORDING  8
 
-CGUIDialogPVRRecordingInfo::CGUIDialogPVRRecordingInfo(void)
+CGUIDialogPVRRecordingInfo::CGUIDialogPVRRecordingInfo()
   : CGUIDialog(WINDOW_DIALOG_PVR_RECORDING_INFO, "DialogPVRInfo.xml")
   , m_recordItem(new CFileItem)
 {
@@ -41,7 +39,7 @@ bool CGUIDialogPVRRecordingInfo::OnMessage(CGUIMessage& message)
   return CGUIDialog::OnMessage(message);
 }
 
-bool CGUIDialogPVRRecordingInfo::OnClickButtonOK(CGUIMessage &message)
+bool CGUIDialogPVRRecordingInfo::OnClickButtonOK(CGUIMessage& message)
 {
   bool bReturn = false;
 
@@ -54,7 +52,7 @@ bool CGUIDialogPVRRecordingInfo::OnClickButtonOK(CGUIMessage &message)
   return bReturn;
 }
 
-bool CGUIDialogPVRRecordingInfo::OnClickButtonPlay(CGUIMessage &message)
+bool CGUIDialogPVRRecordingInfo::OnClickButtonPlay(CGUIMessage& message)
 {
   bool bReturn = false;
 
@@ -94,7 +92,7 @@ bool CGUIDialogPVRRecordingInfo::OnInfo(int actionID)
   return true;
 }
 
-void CGUIDialogPVRRecordingInfo::SetRecording(const CFileItem *item)
+void CGUIDialogPVRRecordingInfo::SetRecording(const CFileItem* item)
 {
   *m_recordItem = *item;
 }

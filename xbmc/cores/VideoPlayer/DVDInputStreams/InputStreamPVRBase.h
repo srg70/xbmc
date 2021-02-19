@@ -8,10 +8,11 @@
 
 #pragma once
 
+#include "DVDInputStream.h"
+
 #include <map>
 #include <memory>
 #include <vector>
-#include "DVDInputStream.h"
 
 class CFileItem;
 class IDemux;
@@ -35,7 +36,6 @@ public:
   void Close() override;
   int Read(uint8_t* buf, int buf_size) override;
   int64_t Seek(int64_t offset, int whence) override;
-  bool Pause(double dTime) override { return false; }
   bool IsEOF() override;
   int64_t GetLength() override;
   int GetBlockSize() override;

@@ -7,6 +7,7 @@
  */
 
 #include "WinRenderer.h"
+
 #include "RenderCapture.h"
 #include "RenderFactory.h"
 #include "RenderFlags.h"
@@ -14,11 +15,11 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/log.h"
-#include "windows/RendererDXVA.h"
-#include "windows/RendererSoftware.h"
-#include "windows/RendererShaders.h"
 #include "windowing/GraphicContext.h"
 #include "windowing/WinSystem.h"
+#include "windows/RendererDXVA.h"
+#include "windows/RendererShaders.h"
+#include "windows/RendererSoftware.h"
 
 struct render_details
 {
@@ -209,8 +210,9 @@ void CWinRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int 
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
   ManageRenderArea();
-  m_renderer->Render(index, index2, DX::Windowing()->GetBackBuffer(), 
-                     m_sourceRect, m_destRect, GetScreenRect(), flags);
+  m_renderer->Render(index, index2, DX::Windowing()->GetBackBuffer(), m_sourceRect, m_destRect,
+                     GetScreenRect(), flags);
+  DX::Windowing()->SetAlphaBlendEnable(true);
 }
 
 bool CWinRenderer::RenderCapture(CRenderCapture* capture)

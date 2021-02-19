@@ -7,19 +7,22 @@
  */
 
 #include "WinVideoFilter.h"
+
 #include "ConvolutionKernels.h"
+#include "Util.h"
+#include "VideoRenderers/windows/RendererBase.h"
 #include "cores/VideoPlayer/VideoRenderers/VideoShaders/dither.h"
 #include "filesystem/File.h"
-#include "windowing/GraphicContext.h"
-#include "platform/win32/WIN32Util.h"
 #include "rendering/dx/RenderContext.h"
-#include "rendering/dx/DeviceResources.h"
-#include "Util.h"
+#include "utils/MemUtils.h"
 #include "utils/log.h"
-#include "VideoRenderers/windows/RendererBase.h"
+#include "windowing/GraphicContext.h"
+
+#include "platform/win32/WIN32Util.h"
+
+#include <map>
 
 #include <DirectXPackedVector.h>
-#include <map>
 
 using namespace DirectX::PackedVector;
 using namespace Microsoft::WRL;
@@ -182,17 +185,20 @@ void COutputShader::ApplyEffectParameters(CD3DEffect &effect, unsigned sourceWid
     effect.SetResources("m_ditherMatrix", m_pDitherView.GetAddressOf(), 1);
     effect.SetFloatArray("m_ditherParams", ditherParams, 3);
   }
-  if (m_toneMapping)
+  if (m_toneMapping && m_toneMappingMethod == VS_TONEMAPMETHOD_REINHARD)
   {
-    float param = 0.7;
+    const float def_param = log10(100.0f) / log10(600.0f); // 600 nits --> 0.72
+    float param = def_param;
+
     if (m_hasLightMetadata)
-      param = log10(100) / log10(m_lightMetadata.MaxCLL);
+      param = static_cast<float>(log10(100) / log10(m_lightMetadata.MaxCLL));
     else if (m_hasDisplayMetadata && m_displayMetadata.has_luminance)
-      param = log10(100) / log10(m_displayMetadata.max_luminance.num / m_displayMetadata.max_luminance.den);
+      param = static_cast<float>(log10(100) / log10(m_displayMetadata.max_luminance.num /
+                                                    m_displayMetadata.max_luminance.den));
 
     // Sanity check
     if (param < 0.1f || param > 5.0f)
-      param = 0.7f;
+      param = def_param;
 
     param *= m_toneMappingParam;
 
@@ -202,6 +208,50 @@ void COutputShader::ApplyEffectParameters(CD3DEffect &effect, unsigned sourceWid
     effect.SetScalar("g_toneP1", param);
     effect.SetFloatArray("g_coefsDst", coefs, 3);
   }
+  else if (m_toneMapping && m_toneMappingMethod == VS_TONEMAPMETHOD_ACES)
+  {
+    effect.SetScalar("g_luminance", GetLuminanceValue());
+    effect.SetScalar("g_toneP1", m_toneMappingParam);
+  }
+  else if (m_toneMapping && m_toneMappingMethod == VS_TONEMAPMETHOD_HABLE)
+  {
+    float lumin = GetLuminanceValue();
+    float lumin_factor = (10000.0f / lumin) * (2.0f / m_toneMappingParam);
+    float lumin_div100 = lumin / (100.0f * m_toneMappingParam);
+    effect.SetScalar("g_toneP1", lumin_factor);
+    effect.SetScalar("g_toneP2", lumin_div100);
+  }
+}
+
+float COutputShader::GetLuminanceValue() const
+{
+  float lum1 = 400.0f; // default for bad quality HDR-PQ sources (with no metadata)
+  float lum2 = lum1;
+  float lum3 = lum1;
+
+  if (m_hasLightMetadata)
+  {
+    uint16_t lum = m_displayMetadata.max_luminance.num / m_displayMetadata.max_luminance.den;
+    if (m_lightMetadata.MaxCLL >= lum)
+    {
+      lum1 = static_cast<float>(lum);
+      lum2 = static_cast<float>(m_lightMetadata.MaxCLL);
+    }
+    else
+    {
+      lum1 = static_cast<float>(m_lightMetadata.MaxCLL);
+      lum2 = static_cast<float>(lum);
+    }
+    lum3 = static_cast<float>(m_lightMetadata.MaxFALL);
+    lum1 = (lum1 * 0.5f) + (lum2 * 0.2f) + (lum3 * 0.3f);
+  }
+  else if (m_hasDisplayMetadata && m_displayMetadata.has_luminance)
+  {
+    uint16_t lum = m_displayMetadata.max_luminance.num / m_displayMetadata.max_luminance.den;
+    lum1 = static_cast<float>(lum);
+  }
+
+  return lum1;
 }
 
 void COutputShader::GetDefines(DefinesMap& map) const
@@ -214,17 +264,32 @@ void COutputShader::GetDefines(DefinesMap& map) const
   {
     map["KODI_DITHER"] = "";
   }
-  if (m_toneMapping)
+  if (m_toneMapping && m_toneMappingMethod == VS_TONEMAPMETHOD_REINHARD)
   {
-    map["KODI_TONE_MAPPING"] = "";
+    map["KODI_TONE_MAPPING_REINHARD"] = "";
+  }
+  else if (m_toneMapping && m_toneMappingMethod == VS_TONEMAPMETHOD_ACES)
+  {
+    map["KODI_TONE_MAPPING_ACES"] = "";
+  }
+  else if (m_toneMapping && m_toneMappingMethod == VS_TONEMAPMETHOD_HABLE)
+  {
+    map["KODI_TONE_MAPPING_HABLE"] = "";
+  }
+  if (m_useHLGtoPQ)
+  {
+    map["KODI_HLG_TO_PQ"] = "";
   }
 }
 
-bool COutputShader::Create(bool useLUT, bool useDithering, int ditherDepth, bool toneMapping)
+bool COutputShader::Create(
+    bool useLUT, bool useDithering, int ditherDepth, bool toneMapping, int toneMethod, bool HLGtoPQ)
 {
   m_useLut = useLUT;
   m_ditherDepth = ditherDepth;
   m_toneMapping = toneMapping;
+  m_useHLGtoPQ = HLGtoPQ;
+  m_toneMappingMethod = toneMethod;
 
   CWinShader::CreateVertexBuffer(4, sizeof(Vertex));
 
@@ -287,6 +352,12 @@ void COutputShader::SetDisplayMetadata(bool hasDisplayMetadata, AVMasteringDispl
   m_lightMetadata = lightMetadata;
 }
 
+void COutputShader::SetToneMapParam(int method, float param)
+{
+  m_toneMappingMethod = method;
+  m_toneMappingParam = param;
+}
+
 bool COutputShader::CreateLUTView(int lutSize, uint16_t* lutData, bool isRGB, ID3D11ShaderResourceView** ppLUTView)
 {
   if (!lutSize || !lutData)
@@ -297,7 +368,7 @@ bool COutputShader::CreateLUTView(int lutSize, uint16_t* lutData, bool isRGB, ID
   {
     // repack data to RGBA
     const unsigned samples = lutSize * lutSize * lutSize;
-    cData = reinterpret_cast<uint16_t*>(_aligned_malloc(samples * sizeof(uint16_t) * 4, 16));
+    cData = reinterpret_cast<uint16_t*>(KODI::MEMORY::AlignedMalloc(samples * sizeof(uint16_t) * 4, 16));
     auto rgba = static_cast<uint16_t*>(cData);
     for (unsigned i = 0; i < samples - 1; ++i, rgba += 4, lutData += 3)
     {
@@ -322,7 +393,7 @@ bool COutputShader::CreateLUTView(int lutSize, uint16_t* lutData, bool isRGB, ID
 
   HRESULT hr = pDevice->CreateTexture3D(&txDesc, &texData, pLUTTex.GetAddressOf());
   if (isRGB)
-    _aligned_free(cData);
+    KODI::MEMORY::AlignedFree(cData);
 
   if (FAILED(hr))
   {
@@ -422,7 +493,7 @@ void COutputShader::CreateDitherView()
 
   if (FAILED(hr))
   {
-    CLog::LogF(LOGDEBUG, "unable to create 3dlut texture cube.");
+    CLog::LogF(LOGDEBUG, "unable to create dither texture cube.");
     m_useDithering = false;
     return;
   }
@@ -431,7 +502,7 @@ void COutputShader::CreateDitherView()
   hr = pDevice->CreateShaderResourceView(pDitherTex.Get(), &srvDesc, &m_pDitherView);
   if (FAILED(hr))
   {
-    CLog::LogF(LOGDEBUG, "unable to create view for 3dlut texture cube.");
+    CLog::LogF(LOGDEBUG, "unable to create view for dither texture cube.");
     m_useDithering = false;
     return;
   }
@@ -696,7 +767,7 @@ bool CConvolutionShader1Pass::Create(ESCALINGMETHOD method, const std::shared_pt
   std::string effectString;
   switch(method)
   {
-    case VS_SCALINGMETHOD_CUBIC:
+    case VS_SCALINGMETHOD_CUBIC_MITCHELL:
     case VS_SCALINGMETHOD_LANCZOS2:
     case VS_SCALINGMETHOD_SPLINE36_FAST:
     case VS_SCALINGMETHOD_LANCZOS3_FAST:
@@ -832,7 +903,7 @@ bool CConvolutionShaderSeparable::Create(ESCALINGMETHOD method, const std::share
   std::string effectString;
   switch(method)
   {
-    case VS_SCALINGMETHOD_CUBIC:
+    case VS_SCALINGMETHOD_CUBIC_MITCHELL:
     case VS_SCALINGMETHOD_LANCZOS2:
     case VS_SCALINGMETHOD_SPLINE36_FAST:
     case VS_SCALINGMETHOD_LANCZOS3_FAST:
@@ -924,7 +995,7 @@ bool CConvolutionShaderSeparable::ChooseIntermediateD3DFormat()
     m_IntermediateFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
   else
   {
-    CLog::LogF(LOGNOTICE, "no float format available for the intermediate render target");
+    CLog::LogF(LOGINFO, "no float format available for the intermediate render target");
     return false;
   }
 

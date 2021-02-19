@@ -7,33 +7,34 @@
  */
 
 #include "WinSystemX11.h"
+
+#include "CompileInfo.h"
+#include "OSScreenSaverX11.h"
 #include "ServiceBroker.h"
+#include "WinEventsX11.h"
+#include "XRandR.h"
+#include "guilib/DispResource.h"
+#include "guilib/Texture.h"
+#include "input/InputManager.h"
+#include "messaging/ApplicationMessenger.h"
 #include "settings/DisplaySettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "settings/lib/Setting.h"
-#include "windowing/GraphicContext.h"
-#include "guilib/Texture.h"
-#include "guilib/DispResource.h"
-#include "utils/log.h"
-#include "XRandR.h"
-#include <vector>
-#include <string>
 #include "threads/SingleLock.h"
-#include "utils/TimeUtils.h"
 #include "utils/StringUtils.h"
-#include "CompileInfo.h"
-#include "messaging/ApplicationMessenger.h"
+#include "utils/TimeUtils.h"
+#include "utils/log.h"
+#include "windowing/GraphicContext.h"
+
+#include <string>
+#include <vector>
+
 #include <X11/Xatom.h>
 #include <X11/extensions/Xrandr.h>
 
-#include "WinEventsX11.h"
-#include "input/InputManager.h"
-#include "OSScreenSaverX11.h"
-#include "platform/linux/powermanagement/LinuxPowerSyscall.h"
-
 using namespace KODI::MESSAGING;
-using namespace KODI::WINDOWING;
+using namespace KODI::WINDOWING::X11;
 
 #define EGL_NO_CONFIG (EGLConfig)0
 
@@ -53,16 +54,28 @@ CWinSystemX11::CWinSystemX11() : CWinSystemBase()
 
   m_winEventsX11 = new CWinEventsX11(*this);
   m_winEvents.reset(m_winEventsX11);
-  CLinuxPowerSyscall::Register();
 }
 
 CWinSystemX11::~CWinSystemX11() = default;
 
 bool CWinSystemX11::InitWindowSystem()
 {
+  const char* env = getenv("DISPLAY");
+  if (!env)
+  {
+    CLog::Log(LOGDEBUG, "CWinSystemX11::{} - DISPLAY env not set", __FUNCTION__);
+    return false;
+  }
+
   if ((m_dpy = XOpenDisplay(NULL)))
   {
     bool ret = CWinSystemBase::InitWindowSystem();
+
+    CServiceBroker::GetSettingsComponent()
+        ->GetSettings()
+        ->GetSetting(CSettings::SETTING_VIDEOSCREEN_LIMITEDRANGE)
+        ->SetVisible(true);
+
     return ret;
   }
   else
@@ -238,7 +251,7 @@ bool CWinSystemX11::SetFullScreen(bool fullScreen, RESOLUTION_INFO& res, bool bl
       if (currmode.w != mode.w || currmode.h != mode.h ||
           currmode.hz != mode.hz || currmode.id != mode.id)
       {
-        CLog::Log(LOGNOTICE, "CWinSystemX11::SetFullScreen - calling xrandr");
+        CLog::Log(LOGINFO, "CWinSystemX11::SetFullScreen - calling xrandr");
 
         // remember last position of mouse
         Window root_return, child_return;
@@ -362,7 +375,7 @@ void CWinSystemX11::UpdateResolutions()
   XOutput *out = g_xrandr.GetOutput(m_userOutput);
   if (out != NULL)
   {
-    CLog::Log(LOGINFO, "Output '%s' has %" PRIdS" modes", out->name.c_str(), out->modes.size());
+    CLog::Log(LOGINFO, "Output '{}' has {} modes", out->name, out->modes.size());
 
     for (auto mode : out->modes)
     {
@@ -461,7 +474,7 @@ void CWinSystemX11::GetConnectedOutputs(std::vector<std::string> *outputs)
   }
 }
 
-bool CWinSystemX11::IsCurrentOutput(std::string output)
+bool CWinSystemX11::IsCurrentOutput(const std::string& output)
 {
   return (StringUtils::EqualsNoCase(output, "Default")) || (m_currentOutput.compare(output.c_str()) == 0);
 }
@@ -474,7 +487,7 @@ void CWinSystemX11::ShowOSMouse(bool show)
     XDefineCursor(m_dpy,m_mainWindow, m_invisibleCursor);
 }
 
-std::unique_ptr<IOSScreenSaver> CWinSystemX11::GetOSScreenSaverImpl()
+std::unique_ptr<KODI::WINDOWING::IOSScreenSaver> CWinSystemX11::GetOSScreenSaverImpl()
 {
   std::unique_ptr<IOSScreenSaver> ret;
   if (m_dpy)
@@ -804,7 +817,7 @@ bool CWinSystemX11::SetWindow(int width, int height, bool fullscreen, const std:
       XTextProperty windowName, iconName;
 
       std::string titleString = CCompileInfo::GetAppName();
-      std::string classString = titleString;
+      const std::string& classString = titleString;
       char *title = const_cast<char*>(titleString.c_str());
 
       XStringListToTextProperty(&title, 1, &windowName);
@@ -890,7 +903,7 @@ bool CWinSystemX11::CreateIconPixmap()
   gRatio = vis->green_mask / 255.0;
   bRatio = vis->blue_mask / 255.0;
 
-  CBaseTexture *iconTexture = CBaseTexture::LoadFromFile("special://xbmc/media/icon256x256.png");
+  CTexture* iconTexture = CTexture::LoadFromFile("special://xbmc/media/icon256x256.png");
 
   if (!iconTexture)
     return false;

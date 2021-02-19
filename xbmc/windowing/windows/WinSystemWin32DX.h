@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "easyhook/easyhook.h"
+#include "HDRStatus.h"
 #include "rendering/dx/RenderSystemDX.h"
 #include "windowing/windows/WinSystemWin32.h"
 
@@ -20,6 +20,9 @@ class CWinSystemWin32DX : public CWinSystemWin32, public CRenderSystemDX
 public:
   CWinSystemWin32DX();
   ~CWinSystemWin32DX();
+
+  static void Register();
+  static std::unique_ptr<CWinSystemBase> CreateWinSystem();
 
   // Implementation of CWinSystemBase via CWinSystemWin32
   CRenderSystemBase *GetRenderSystem() override { return this; }
@@ -65,6 +68,17 @@ public:
 
   void FixRefreshRateIfNecessary(const D3D10DDIARG_CREATERESOURCE* pResource) const;
 
+  // HDR OS/display override
+  bool IsHDRDisplay() override;
+  HDR_STATUS ToggleHDR() override;
+  HDR_STATUS GetOSHDRStatus() override;
+
+  // HDR support
+  bool IsHDROutput() const;
+  bool IsTransferPQ() const;
+  void SetHdrMetaData(DXGI_HDR_METADATA_HDR10& hdr10) const;
+  void SetHdrColorSpace(const DXGI_COLOR_SPACE_TYPE colorSpace) const;
+
 protected:
   void SetDeviceFullScreen(bool fullScreen, RESOLUTION_INFO& res) override;
   void ReleaseBackBuffer() override;
@@ -75,6 +89,5 @@ protected:
   bool ChangeResolution(const RESOLUTION_INFO& res, bool forceChange = false) override;
 
   HMODULE m_hDriverModule;
-  TRACED_HOOK_HANDLE m_hHook;
 };
 

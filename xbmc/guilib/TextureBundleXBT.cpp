@@ -10,25 +10,26 @@
 
 #include "ServiceBroker.h"
 #include "Texture.h"
-#include "windowing/GraphicContext.h"
-#include "utils/log.h"
-#include "settings/Settings.h"
-#include "settings/SettingsComponent.h"
-#include "filesystem/SpecialProtocol.h"
-#include "filesystem/XbtManager.h"
-#include "utils/URIUtils.h"
-#include "utils/StringUtils.h"
 #include "XBTF.h"
 #include "XBTFReader.h"
+#include "filesystem/SpecialProtocol.h"
+#include "filesystem/XbtManager.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
+#include "utils/StringUtils.h"
+#include "utils/URIUtils.h"
+#include "utils/log.h"
+#include "windowing/GraphicContext.h"
+
+#include <inttypes.h>
+
 #include <lzo/lzo1x.h>
 
 #ifdef TARGET_WINDOWS_DESKTOP
 #ifdef NDEBUG
 #pragma comment(lib,"lzo2.lib")
-#elif defined _WIN64
-#pragma comment(lib, "lzo2d.lib")
 #else
-#pragma comment(lib, "lzo2-no_idb.lib")
+#pragma comment(lib, "lzo2d.lib")
 #endif
 #endif
 
@@ -146,8 +147,10 @@ void CTextureBundleXBT::GetTexturesFromPath(const std::string &path, std::vector
   }
 }
 
-bool CTextureBundleXBT::LoadTexture(const std::string& Filename, CBaseTexture** ppTexture,
-                                     int &width, int &height)
+bool CTextureBundleXBT::LoadTexture(const std::string& Filename,
+                                    CTexture** ppTexture,
+                                    int& width,
+                                    int& height)
 {
   std::string name = Normalize(Filename);
 
@@ -170,8 +173,12 @@ bool CTextureBundleXBT::LoadTexture(const std::string& Filename, CBaseTexture** 
   return true;
 }
 
-int CTextureBundleXBT::LoadAnim(const std::string& Filename, CBaseTexture*** ppTextures,
-                              int &width, int &height, int& nLoops, int** ppDelays)
+int CTextureBundleXBT::LoadAnim(const std::string& Filename,
+                                CTexture*** ppTextures,
+                                int& width,
+                                int& height,
+                                int& nLoops,
+                                int** ppDelays)
 {
   std::string name = Normalize(Filename);
 
@@ -183,7 +190,7 @@ int CTextureBundleXBT::LoadAnim(const std::string& Filename, CBaseTexture*** ppT
     return false;
 
   size_t nTextures = file.GetFrames().size();
-  *ppTextures = new CBaseTexture*[nTextures];
+  *ppTextures = new CTexture*[nTextures];
   *ppDelays = new int[nTextures];
 
   for (size_t i = 0; i < nTextures; i++)
@@ -205,7 +212,9 @@ int CTextureBundleXBT::LoadAnim(const std::string& Filename, CBaseTexture*** ppT
   return nTextures;
 }
 
-bool CTextureBundleXBT::ConvertFrameToTexture(const std::string& name, CXBTFFrame& frame, CBaseTexture** ppTexture)
+bool CTextureBundleXBT::ConvertFrameToTexture(const std::string& name,
+                                              CXBTFFrame& frame,
+                                              CTexture** ppTexture)
 {
   // found texture - allocate the necessary buffers
   unsigned char *buffer = new unsigned char [(size_t)frame.GetPackedSize()];
@@ -247,7 +256,7 @@ bool CTextureBundleXBT::ConvertFrameToTexture(const std::string& name, CXBTFFram
   }
 
   // create an xbmc texture
-  *ppTexture = new CTexture();
+  *ppTexture = CTexture::CreateTexture();
   (*ppTexture)->LoadFromMemory(frame.GetWidth(), frame.GetHeight(), 0, frame.GetFormat(), frame.HasAlpha(), buffer);
 
   delete[] buffer;

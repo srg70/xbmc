@@ -7,7 +7,11 @@
  */
 
 #include "WinSystemWin32.h"
+
 #include "Application.h"
+#include "ServiceBroker.h"
+#include "VideoSyncD3D.h"
+#include "WinEventsWin32.h"
 #include "cores/AudioEngine/AESinkFactory.h"
 #include "cores/AudioEngine/Sinks/AESinkDirectSound.h"
 #include "cores/AudioEngine/Sinks/AESinkWASAPI.h"
@@ -15,23 +19,23 @@
 #include "filesystem/SpecialProtocol.h"
 #include "messaging/ApplicationMessenger.h"
 #include "platform/Environment.h"
-#include "platform/win32/CharsetConverter.h"
-#include "platform/win32/input/IRServerSuite.h"
-#include "platform/win32/powermanagement/Win32PowerSyscall.h"
+#include "rendering/dx/ScreenshotSurfaceWindows.h"
 #include "resource.h"
-#include "ServiceBroker.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/DisplaySettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "threads/SingleLock.h"
-#include "utils/log.h"
 #include "utils/SystemInfo.h"
-#include "VideoSyncD3D.h"
+#include "utils/log.h"
 #include "windowing/GraphicContext.h"
-#include "WinEventsWin32.h"
+#include "windowing/windows/Win32DPMSSupport.h"
+
+#include "platform/win32/CharsetConverter.h"
+#include "platform/win32/input/IRServerSuite.h"
 
 #include <algorithm>
+
 #include <tpcshrd.h>
 
 CWinSystemWin32::CWinSystemWin32()
@@ -67,12 +71,14 @@ CWinSystemWin32::CWinSystemWin32()
   AE::CAESinkFactory::ClearSinks();
   CAESinkDirectSound::Register();
   CAESinkWASAPI::Register();
-  CWin32PowerSyscall::Register();
+  CScreenshotSurfaceWindows::Register();
+
   if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bScanIRServer)
   {
     m_irss.reset(new CIRServerSuite());
     m_irss->Initialize();
   }
+  m_dpms = std::make_shared<CWin32DPMSSupport>();
 }
 
 CWinSystemWin32::~CWinSystemWin32()
@@ -355,7 +361,7 @@ void CWinSystemWin32::AdjustWindow(bool forceResize)
 
     if (!m_ValidWindowedPosition || hMon == nullptr || hMon != hMon2)
     {
-      RECT newScreenRect = ScreenRect(m_hMonitor);
+      RECT newScreenRect = ScreenRect(hMon2);
       rc.left = m_nLeft = newScreenRect.left + ((newScreenRect.right - newScreenRect.left) / 2) - (m_nWidth / 2);
       rc.top = m_nTop = newScreenRect.top + ((newScreenRect.bottom - newScreenRect.top) / 2) - (m_nHeight / 2);
       rc.right = m_nLeft + m_nWidth;
@@ -896,7 +902,7 @@ void CWinSystemWin32::UpdateResolutions()
   UpdateDesktopResolution(info, monitorName, w, h, refreshRate, dwFlags);
   info.strOutput = strOutput;
 
-  CLog::Log(LOGNOTICE, "Primary mode: %s", info.strMode.c_str());
+  CLog::Log(LOGINFO, "Primary mode: %s", info.strMode.c_str());
 
   // erase previous stored modes
   CDisplaySettings::GetInstance().ClearCustomResolutions();
@@ -933,7 +939,7 @@ void CWinSystemWin32::UpdateResolutions()
     res.strOutput = strOutput;
 
     if (AddResolution(res))
-      CLog::Log(LOGNOTICE, "Additional mode: %s", res.strMode.c_str());
+      CLog::Log(LOGINFO, "Additional mode: %s", res.strMode.c_str());
   }
 
   CDisplaySettings::GetInstance().ApplyCalibrations();

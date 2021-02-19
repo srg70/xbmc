@@ -6,18 +6,19 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include <algorithm>
-#include <string.h>
-
-#include <lzo/lzo1x.h>
-
 #include "XbtFile.h"
+
 #include "URL.h"
 #include "filesystem/File.h"
 #include "filesystem/XbtManager.h"
 #include "guilib/TextureBundleXBT.h"
 #include "guilib/XBTFReader.h"
 #include "utils/StringUtils.h"
+
+#include <algorithm>
+#include <string.h>
+
+#include <lzo/lzo1x.h>
 
 namespace XFILE
 {
@@ -39,8 +40,6 @@ bool CXbtFile::Open(const CURL& url)
 {
   if (m_open)
     return false;
-
-  std::string options = url.GetOptions();
 
   CURL xbtUrl(url);
   xbtUrl.SetOptions("");

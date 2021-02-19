@@ -51,8 +51,8 @@ if(ALSA_FOUND)
                       Utils/AEELDParser.cpp)
   list(APPEND HEADERS Sinks/AESinkALSA.h
                       Utils/AEELDParser.h)
-                      
-  if(NOT CORE_PLATFORM_NAME_LC STREQUAL x11)
+
+  if(NOT "x11" IN_LIST CORE_PLATFORM_NAME_LC)
     list(APPEND SOURCES Sinks/alsa/ALSAHControlMonitor.cpp)
     list(APPEND HEADERS Sinks/alsa/ALSAHControlMonitor.h)
   endif()
@@ -94,13 +94,6 @@ if(CORE_SYSTEM_NAME MATCHES windows)
   endif()
 endif()
 
-if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
-  list(APPEND SOURCES Engines/ActiveAE/ActiveAEResamplePi.cpp
-                      Sinks/AESinkPi.cpp)
-  list(APPEND HEADERS Engines/ActiveAE/ActiveAEResamplePi.h
-                      Sinks/AESinkPi.h)
-endif()
-
 if(CORE_SYSTEM_NAME STREQUAL osx)
   list(APPEND SOURCES Sinks/AESinkDARWINOSX.cpp
                       Sinks/darwin/CoreAudioHelpers.cpp
@@ -118,11 +111,16 @@ if(CORE_SYSTEM_NAME STREQUAL osx)
                       Sinks/osx/CoreAudioStream.h)
 endif()
 
-if(CORE_SYSTEM_NAME STREQUAL ios)
-  list(APPEND SOURCES Sinks/AESinkDARWINIOS.mm
-                      Sinks/darwin/CoreAudioHelpers.cpp)
-  list(APPEND HEADERS Sinks/AESinkDARWINIOS.h
-                      Sinks/darwin/CoreAudioHelpers.h)
+if(CORE_SYSTEM_NAME STREQUAL darwin_embedded)
+  list(APPEND SOURCES Sinks/darwin/CoreAudioHelpers.cpp)
+  list(APPEND HEADERS Sinks/darwin/CoreAudioHelpers.h)
+  if("ios" IN_LIST CORE_PLATFORM_NAME_LC)
+    list(APPEND SOURCES Sinks/AESinkDARWINIOS.mm)
+    list(APPEND HEADERS Sinks/AESinkDARWINIOS.h)
+  elseif("tvos" IN_LIST CORE_PLATFORM_NAME_LC)
+    list(APPEND SOURCES Sinks/AESinkDARWINTVOS.mm)
+    list(APPEND HEADERS Sinks/AESinkDARWINTVOS.h)
+  endif()
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL android)

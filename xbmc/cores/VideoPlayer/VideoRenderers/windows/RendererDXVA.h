@@ -10,9 +10,10 @@
 #include "RendererHQ.h"
 #include "VideoRenderers/HwDecRender/DXVAHD.h"
 
-#include <d3d11.h>
-#include <libavutil/pixfmt.h>
 #include <map>
+
+#include <d3d11_4.h>
+#include <libavutil/pixfmt.h>
 
 enum RenderMethod;
 
@@ -37,7 +38,6 @@ protected:
   void CheckVideoParameters() override;
   void RenderImpl(CD3DTexture& target, CRect& sourceRect, CPoint(&destPoints)[4], uint32_t flags) override;
   CRenderBuffer* CreateBuffer() override;
-  bool UseToneMapping() const override;
 
 private:
   void FillBuffersSet(CRenderBuffer* (&buffers)[8]);
@@ -52,9 +52,7 @@ public:
   explicit CRenderBufferImpl(AVPixelFormat av_pix_format, unsigned width, unsigned height);
   ~CRenderBufferImpl();
 
-  bool IsLoaded() override;
   bool UploadBuffer() override;
-  void ReleasePicture() override;
   HRESULT GetResource(ID3D11Resource** ppResource, unsigned* index) const override;
 
   static DXGI_FORMAT GetDXGIFormat(AVPixelFormat format, DXGI_FORMAT default_fmt = DXGI_FORMAT_UNKNOWN);
@@ -62,6 +60,5 @@ public:
 private:
   bool UploadToTexture();
 
-  bool m_loaded = false;
   CD3DTexture m_texture;
 };
