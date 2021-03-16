@@ -1,3 +1,5 @@
+cmake_policy(SET CMP0057 NEW)
+
 # Workaround for the fact that cpack's filenames are not customizable.
 # Each add-on is added as a separate component to facilitate zip/tgz packaging.
 # The filenames are always of the form basename-component, which is
@@ -122,7 +124,7 @@ macro (build_addon target prefix libs)
             foreach(src_file ${USED_SOURCES})
               file(STRINGS ${src_file} BIN_ADDON_SRC_PARTS)
               foreach(loop_var ${BIN_ADDON_SRC_PARTS})
-                string(REGEX MATCH "^[ \t]*#[ \t]*(include|import)[ \t]*[<\"](kodi\/)?(.+)[\">]" include_name "${loop_var}")
+                string(REGEX MATCH "^[ \t]*#[ \t]*(include|import)[ \t]*[<\"](kodi\\/)?(.+)[\">]" include_name "${loop_var}")
                 if(include_name AND CMAKE_MATCH_3 MATCHES ^${depend_header})
                   get_directory_property(CURRENT_DEFS COMPILE_DEFINITIONS)
                   if(NOT used_type_name IN_LIST CURRENT_DEFS)
